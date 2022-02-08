@@ -18,11 +18,17 @@ import static ch.elexis.core.ui.text.TextTemplateRequirement.TT_PRESCRIPTION;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.e4.core.di.annotations.Optional;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 
+import ch.elexis.core.constants.Preferences;
 import ch.elexis.core.data.events.ElexisEventDispatcher;
 import ch.elexis.core.data.interfaces.IOutputter;
 import ch.elexis.core.data.service.LocalLockServiceHolder;
@@ -30,6 +36,7 @@ import ch.elexis.core.lock.types.LockResponse;
 import ch.elexis.core.model.prescription.EntryType;
 import ch.elexis.core.ui.actions.GlobalEventDispatcher;
 import ch.elexis.core.ui.actions.IActivationListener;
+import ch.elexis.core.ui.e4.util.CoreUiUtil;
 import ch.elexis.core.ui.icons.Images;
 import ch.elexis.core.ui.locks.LockResponseHelper;
 import ch.elexis.core.ui.text.EditLocalDocumentUtil;
@@ -176,8 +183,7 @@ public class RezeptBlatt extends ViewPart implements ICallback, IActivationListe
 		}
 		TimeTool now = new TimeTool();
 		actBrief = text.createFromTemplateName(text.getAktuelleKons(), template, Brief.UNKNOWN,
-			(Patient) ElexisEventDispatcher
-				.getSelected(Patient.class),
+			(Patient) ElexisEventDispatcher.getSelected(Patient.class),
 			template + " " + now.toString(TimeTool.DATE_GER));
 		updateTextLock();
 		List<Prescription> lines = Arrays.asList(prescriptions);
@@ -349,5 +355,12 @@ public class RezeptBlatt extends ViewPart implements ICallback, IActivationListe
 	
 	public void setAddressSelection(boolean value){
 		this.addressSelection = value;
+	}
+	
+	@Optional
+	@Inject
+	public void setFixLayout(MPart part, @Named(Preferences.USR_FIX_LAYOUT)
+	boolean currentState){
+		CoreUiUtil.updateFixLayout(part, currentState);
 	}
 }
