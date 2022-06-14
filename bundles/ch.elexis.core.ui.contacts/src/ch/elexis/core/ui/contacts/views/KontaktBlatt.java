@@ -89,6 +89,7 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 	private final FormToolkit tk;
 	AutoForm afDetails;
 	Listener mListener, cListener;
+	List<Kontakt> list;
 
 	static final InputData[] def = new InputData[] {
 			new InputData(Messages.KontaktBlatt_Bez1, Kontakt.FLD_NAME1, Typ.STRING, null),
@@ -206,51 +207,34 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 		bottom.setLayoutData(SWTHelper.getFillGridData(1, true, 1, true));
 		actKontakt = (Kontakt) ElexisEventDispatcher.getSelected(Kontakt.class);
 		afDetails = new AutoForm(bottom, def);
-		
+
 		mListener = new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
-				Button bMandant;
-				bMandant = bTypes[5];
-
-				if (bMandant.getSelection()) {
 					if (MessageDialog.openConfirm(getShell(), "Mandant bearbeiten",
 							"Sie nehmen Änderungen an einem Mandanten vor\nÄnderung speichern") == false) {
 						event.doit = false;
 					}
-
 					for (int i = 0; i < def.length; i++) {
 						def[i].getWidget().getControl().removeListener(SWT.KeyDown, mListener);
 					}
 				}
-			}
 		};
 
 		cListener = new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
-				String tName, tVorname, tSex;
-				tName = def[0].getText();
-				tVorname = def[1].getText();
-				tSex = def[3].getText();
-
-				Query<Kontakt> qbe = new Query<Kontakt>(Kontakt.class);
-				qbe.add("Bezeichnung1", "=", tName); //$NON-NLS-1$ //$NON-NLS-2$
-				qbe.add("Bezeichnung2", "=", tVorname); //$NON-NLS-1$ //$NON-NLS-2$
-				qbe.add("Geschlecht", "=", tSex); //$NON-NLS-1$ //$NON-NLS-2$
-				List<Kontakt> list = qbe.execute();
+				queryContact();
 
 				if ((list != null) && (!list.isEmpty())) {
-					Kontakt k = list.get(0);
-
+					Kontakt k = (Kontakt) list.get(0);
 					if (k.istPerson()) {
 						MessageDialog.openInformation(getShell(), "Kontakt existiert",
 								"Ein Kontakt mit diesen Daten existiert bereits in der Datenbank");
 					}
 				}
-
 			}
 		};
 
@@ -275,6 +259,20 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 		def[19].getWidget().setVisible(false); // field is only added for UI presentation reasons
 		GlobalEventDispatcher.addActivationListener(this, site.getPart());
 		setUnlocked(false);
+	}
+
+	private void queryContact() {
+		String tName, tVorname, tSex;
+		tName = def[0].getText();
+		tVorname = def[1].getText();
+		tSex = def[3].getText();
+
+		Query<Kontakt> qbe = new Query<Kontakt>(Kontakt.class);
+		qbe.add(Kontakt.FLD_NAME1, "=", tName); //$NON-NLS-1$ //$NON-NLS-2$
+		qbe.add(Kontakt.FLD_NAME2, "=", tVorname); //$NON-NLS-1$ //$NON-NLS-2$
+		qbe.add(Patient.FLD_SEX, "=", tSex); //$NON-NLS-1$ //$NON-NLS-2$
+		List<Kontakt> cList = qbe.execute();
+		list = cList;
 	}
 
 	@Override
@@ -400,21 +398,29 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 		form.reflow(true);
 		setUnlocked(LocalLockServiceHolder.get().isLockedLocal(kontakt));
 
-		for (int i = 0; i < def.length; i++) {
-			def[i].getWidget().getControl().removeListener(SWT.KeyDown, mListener);
+		setListener(actKontakt);
+	}
+
+	private void setListener(Kontakt kontakt) {
+		try {
+			boolean mandatorEditGuard = kontakt.istMandant();
+
+			for (int i = 0; i < def.length; i++) {
+				def[i].getWidget().getControl().removeListener(SWT.KeyDown, mListener);
+				def[i].getWidget().getControl().removeListener(SWT.CHANGED, cListener);
+			}
+			if (mandatorEditGuard) {
+			for (int i = 0; i < def.length; i++) {
+				def[i].getWidget().getControl().addListener(SWT.KeyDown, mListener);
+			}
+		} else {
+			for (int i = 0; i <= 4; i++) {
+				def[i].getWidget().getControl().addListener(SWT.CHANGED, cListener);
+			}
 		}
-
-		def[0].getWidget().getControl().removeListener(SWT.CHANGED, cListener);
-		def[1].getWidget().getControl().removeListener(SWT.CHANGED, cListener);
-		def[3].getWidget().getControl().removeListener(SWT.CHANGED, cListener);
-
-		for (int i = 0; i < def.length; i++) {
-			def[i].getWidget().getControl().addListener(SWT.KeyDown, mListener);
-		}
-
-		def[0].getWidget().getControl().addListener(SWT.CHANGED, cListener);
-		def[1].getWidget().getControl().addListener(SWT.CHANGED, cListener);
-		def[3].getWidget().getControl().addListener(SWT.CHANGED, cListener);
+	} catch (Exception e) {
+		// do nothing
+	}
 	}
 
 	public void visible(boolean mode) {
