@@ -89,7 +89,6 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 	private final FormToolkit tk;
 	AutoForm afDetails;
 	Listener mListener, cListener;
-	List<Kontakt> list;
 
 	static final InputData[] def = new InputData[] {
 			new InputData(Messages.KontaktBlatt_Bez1, Kontakt.FLD_NAME1, Typ.STRING, null),
@@ -226,7 +225,7 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 
 			@Override
 			public void handleEvent(Event event) {
-				queryContact();
+				List<Kontakt> list = queryContact();
 
 				if ((list != null) && (!list.isEmpty())) {
 					Kontakt k = (Kontakt) list.get(0);
@@ -261,7 +260,7 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 		setUnlocked(false);
 	}
 
-	private void queryContact() {
+	private List<Kontakt> queryContact() {
 		String tName, tVorname, tSex;
 		tName = def[0].getText();
 		tVorname = def[1].getText();
@@ -271,8 +270,8 @@ public class KontaktBlatt extends Composite implements IActivationListener, IUnl
 		qbe.add(Kontakt.FLD_NAME1, "=", tName); //$NON-NLS-1$ //$NON-NLS-2$
 		qbe.add(Kontakt.FLD_NAME2, "=", tVorname); //$NON-NLS-1$ //$NON-NLS-2$
 		qbe.add(Patient.FLD_SEX, "=", tSex); //$NON-NLS-1$ //$NON-NLS-2$
-		List<Kontakt> cList = qbe.execute();
-		list = cList;
+		List<Kontakt> list = qbe.execute();
+		return list;
 	}
 
 	@Override
