@@ -5,6 +5,7 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS {
 	// BUNDLE_NAME is needed for core.data
 	public static final String BUNDLE_NAME = "ch.elexis.core.l10n.messages";
+	public static String Core_Area_Bereiche;
 	public static String ABX_CheckPath;
 	public static String ABX_ConnectionName;
 	public static String ABX_DefaultCPort;
@@ -943,7 +944,7 @@ public class Messages extends NLS {
 	public static String Core_Message;
 	public static String Core_Midday;
 	public static String Core_Missing_rights;
-	public static String Core_Mobilphone;
+	public static String Core_Mobilephone;
 	public static String Core_Monday;
 	public static String Core_Monday_Short;
 	public static String Core_Multiplicator;
